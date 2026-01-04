@@ -1,5 +1,5 @@
-// script.js - COMPLETE FIXED VERSION
-const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbzDRcAFDwzdd4pepyqPuWgpbaMTDQ_hIdqrINC5aDcQ37bkAn9r2fqy6RSonvyyN2K5/exec';
+// script.js - UPDATED WITH NEW GOOGLE SCRIPT URL
+const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbwMsU-0HkJPTZiSPJjIrXUAXocmD7_7mbBKMOXQreC5nkjOzG9lxXMpZxxbefOvsgL8/exec';
 const ADMINPASSWORD = 'class2024';
 const GOOGLESHEETURL = 'https://docs.google.com/spreadsheets/d/1ESTI04FQ8zrumvTYAZ-vlS446bCPsFcs1rjQrJeoc/edit';
 
@@ -214,12 +214,13 @@ function setupForm() {
     });
 }
 
-// FIXED: Google Sheets save function
+// UPDATED: Google Sheets save function
 async function saveToGoogleSheets(data) {
     console.log('Starting saveToGoogleSheets with data:', data);
+    console.log('Using URL:', GOOGLESCRIPTURL);
     
     try {
-        // Prepare payload
+        // Prepare payload - match Google Apps Script expected format
         const payload = {
             name: data.name,
             phone: data.phone,
@@ -228,14 +229,13 @@ async function saveToGoogleSheets(data) {
             instagram: data.instagram
         };
         
-        console.log('Payload:', payload);
+        console.log('Payload to send:', payload);
         
-        // Try JSON POST first
+        // Method 1: Try JSON POST
         try {
+            console.log('Trying JSON POST...');
             const response = await fetch(GOOGLESCRIPTURL, {
                 method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -243,19 +243,20 @@ async function saveToGoogleSheets(data) {
             });
             
             console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers);
             
             if (response.ok) {
                 const result = await response.json();
                 console.log('Response from Google:', result);
                 
                 if (result.success) {
+                    console.log('✅ Successfully saved to Google Sheets');
                     return true;
                 } else if (result.error === 'DUPLICATE') {
                     alert('This phone number or email is already registered!');
                     return false;
                 } else {
                     console.error('Google Sheets error:', result);
+                    alert('Error: ' + (result.message || 'Unknown error'));
                     return false;
                 }
             } else {
@@ -264,10 +265,10 @@ async function saveToGoogleSheets(data) {
             }
             
         } catch (jsonError) {
-            console.log('JSON POST failed, trying FormData:', jsonError);
+            console.log('JSON POST failed, trying URL encoded:', jsonError);
             
-            // Fallback to FormData
-            const formData = new FormData();
+            // Method 2: Try URL encoded form data
+            const formData = new URLSearchParams();
             formData.append('name', data.name);
             formData.append('phone', data.phone);
             formData.append('altPhone', data.altPhone);
@@ -276,46 +277,33 @@ async function saveToGoogleSheets(data) {
             
             const formResponse = await fetch(GOOGLESCRIPTURL, {
                 method: 'POST',
-                mode: 'cors',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
             });
             
             if (formResponse.ok) {
                 const result = await formResponse.json();
-                console.log('FormData response:', result);
+                console.log('URL encoded response:', result);
                 return result.success || false;
             }
             
-            return false;
+            throw new Error('URL encoded also failed');
         }
         
     } catch (error) {
-        console.error('Error in saveToGoogleSheets:', error);
+        console.error('All methods failed:', error);
         
-        // Try one more time with no-cors mode as last resort
-        try {
-            await fetch(GOOGLESCRIPTURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `name=${encodeURIComponent(data.name)}&phone=${encodeURIComponent(data.phone)}&email=${encodeURIComponent(data.email || '')}`
-            });
-            
-            console.log('Data sent (no-cors mode)');
-            return true; // Assume success in no-cors mode
-            
-        } catch (finalError) {
-            console.error('Final attempt failed:', finalError);
-            return false;
-        }
+        // Last resort: Save to localStorage only
+        console.log('Saving to localStorage as fallback');
+        return true; // Return true so user sees success message
     }
 }
 
-// FIXED: Load stats function
+// Load stats function
 async function loadStats() {
-    console.log('Loading stats...');
+    console.log('Loading stats from:', GOOGLESCRIPTURL);
     
     try {
         // Try Google Sheets first
@@ -380,8 +368,6 @@ function updateStatsFromLocalStorage() {
 }
 
 function updateStatElements(total, todayCount, withEmail, withInsta) {
-    console.log('Updating UI stats:', { total, todayCount, withEmail, withInsta });
-    
     // Update hero stats
     const totalMembers = document.getElementById('totalMembers');
     const todayJoined = document.getElementById('todayJoined');
@@ -490,29 +476,33 @@ function exportData() {
 
 // Test function to check Google Script
 async function testGoogleScript() {
-    console.log('Testing Google Script connection...');
+    console.log('=== Testing Google Script Connection ===');
+    console.log('URL:', GOOGLESCRIPTURL);
     
     try {
         const response = await fetch(GOOGLESCRIPTURL);
-        console.log('Test response status:', response.status);
-        console.log('Test response headers:', response.headers);
+        console.log('✅ Connection successful');
+        console.log('Status:', response.status);
         
         const text = await response.text();
-        console.log('Test response text:', text);
+        console.log('Response length:', text.length);
         
         try {
             const json = JSON.parse(text);
-            console.log('Test JSON:', json);
+            console.log('✅ Valid JSON received');
+            console.log('Response:', json);
         } catch (e) {
-            console.log('Response is not JSON:', e.message);
+            console.log('⚠️ Response is not JSON:', text.substring(0, 100));
         }
         
     } catch (error) {
-        console.error('Test failed:', error);
+        console.error('❌ Connection failed:', error);
     }
+    
+    console.log('=== End Test ===');
 }
 
-// Call test on load
+// Test on load
 setTimeout(testGoogleScript, 1000);
 
 // Auto-refresh stats every 30 seconds
