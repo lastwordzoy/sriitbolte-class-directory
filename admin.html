@@ -338,7 +338,7 @@
                 console.log('Loading entries from:', GOOGLESCRIPTURL);
                 
                 // Try to load from Google Sheets first
-                const response = await fetch(`${GOOGLESCRIPTURL}?read=true`);
+                const response = await fetch(`${GOOGLESCRIPTURL}?action=read`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await response.json();
@@ -564,7 +564,7 @@
                 showLoading(true);
                 console.log('🔄 Syncing from Google Sheets...');
                 
-                const response = await fetch(`${GOOGLESCRIPTURL}?read=true`);
+                const response = await fetch(`${GOOGLESCRIPTURL}?action=read`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await response.json();
@@ -651,4 +651,5 @@
 </body>
 
 </html>
+
 
