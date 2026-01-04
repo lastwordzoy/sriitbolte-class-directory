@@ -308,7 +308,7 @@
     </div>
 
     <script>
-        // Google Script URL - CORRECTED WITH YOUR NEW URL
+        // Google Script URL - UPDATED TO MATCH MAIN PAGE
         const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbzDRcAFDwzdd4pepyqPuWgpbaMTDQ_hIdqrINC5aDcQ37bkAn9r2fqy6RSonvyyN2K5/exec';
 
         let allEntries = [];
@@ -338,7 +338,7 @@
                 console.log('Loading entries from:', GOOGLESCRIPTURL);
                 
                 // Try to load from Google Sheets first
-                const response = await fetch(`${GOOGLESCRIPTURL}?action=read`);
+                const response = await fetch(GOOGLESCRIPTURL);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await response.json();
@@ -351,7 +351,7 @@
                     allEntries = result.data.map(item => ({
                         name: item.Name || item.name,
                         phone: (item.Phone || item.phone)?.toString(),
-                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone || item.AltPhone)?.toString(),
                         email: item.Email || item.email,
                         instagram: item.Instagram || item.instagram,
                         submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
@@ -564,7 +564,7 @@
                 showLoading(true);
                 console.log('🔄 Syncing from Google Sheets...');
                 
-                const response = await fetch(`${GOOGLESCRIPTURL}?action=read`);
+                const response = await fetch(GOOGLESCRIPTURL);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await response.json();
@@ -575,7 +575,7 @@
                     const entries = result.data.map(item => ({
                         name: item.Name || item.name,
                         phone: (item.Phone || item.phone)?.toString(),
-                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone || item.AltPhone)?.toString(),
                         email: item.Email || item.email,
                         instagram: item.Instagram || item.instagram,
                         submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
@@ -649,7 +649,4 @@
         }, 30000);
     </script>
 </body>
-
 </html>
-
-
