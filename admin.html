@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Class Directory</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .admin-header {
+            background: #1f2937;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .admin-header h1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .admin-actions {
+            padding: 1.5rem;
+            background: #f3f4f6;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .export-btn {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .sync-btn {
+            background: #10b981;
+            color: white;
+        }
+        
+        .clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .back-btn {
+            background: #6b7280;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            filter: brightness(110%);
+        }
+        
+        .entries-container {
+            padding: 1.5rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .entry-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s;
+        }
+        
+        .entry-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .entry-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #2563eb;
+            flex-shrink: 0;
+        }
+        
+        .entry-info {
+            flex: 1;
+        }
+        
+        .entry-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .entry-contact {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .entry-contact i {
+            width: 16px;
+            text-align: center;
+        }
+        
+        .no-entries {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6b7280;
+        }
+        
+        .no-entries i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        
+        .search-box {
+            padding: 1rem;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-actions {
+                flex-direction: column;
+            }
+            
+            .entry-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .entry-contact {
+                justify-content: center;
+            }
+            
+            .stats-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-card">
+            <div class="admin-header">
+                <a href="index.html" style="color: white; text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+                    <i class="fas fa-arrow-left"></i> Back to Form
+                </a>
+                <h1>
+                    <i class="fas fa-users-cog"></i>
+                    Class Directory Admin
+                </h1>
+                <p>View and manage all submitted profiles</p>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search by name, phone, or email..." onkeyup="searchEntries(this.value)">
+            </div>
+            
+            <div class="admin-actions">
+                <button class="action-btn export-btn" onclick="exportAllData()">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+                <button class="action-btn sync-btn" onclick="syncFromGoogleSheets()">
+                    <i class="fas fa-sync"></i> Sync from Google
+                </button>
+                <button class="action-btn clear-btn" onclick="clearAllData()">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+                <button class="action-btn sync-btn" onclick="loadEntries()">
+                    <i class="fas fa-redo"></i> Refresh
+                </button>
+                <a href="index.html" class="action-btn back-btn">
+                    <i class="fas fa-home"></i> Home
+                </a>
+            </div>
+            
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Profiles</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statToday">0</div>
+                    <div class="stat-label">Today</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="statWithEmail">0</div>
+                    <div class="stat-label">With Email</div>
+                </div>
+            </div>
+            
+            <div class="entries-container" id="entriesContainer">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading entries...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Script URL - CORRECTED WITH YOUR NEW URL
+        const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbxrEMMt6g-39pTAUeJhJnZdfzM7s5A4kI8trsm7yezVwBfkTQzGnJxDpLbxhPwc0zpX/exec';
+
+        let allEntries = [];
+
+        // Check password
+        const password = prompt('Enter admin password:');
+        if (password !== 'class2024') {
+            alert('Access denied. Incorrect password.');
+            window.location.href = 'index.html';
+        }
+
+        // Load entries on page load
+        document.addEventListener('DOMContentLoaded', loadEntries);
+
+        // Listen for new entries from main page
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'NEW_ENTRY') {
+                console.log('New entry received:', event.data.data);
+                loadEntries();
+            }
+        });
+
+        // ===== LOAD ENTRIES =====
+        async function loadEntries() {
+            try {
+                showLoading(true);
+                console.log('Loading entries from:', GOOGLESCRIPTURL);
+                
+                // Try to load from Google Sheets first
+                const response = await fetch(`${GOOGLESCRIPTURL}?read=true`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const result = await response.json();
+                console.log('Google Sheets response:', result);
+                
+                if (result.success && result.data && Array.isArray(result.data)) {
+                    console.log(`Found ${result.data.length} entries in Google Sheets`);
+                    
+                    // Convert Google Sheets data to our format
+                    allEntries = result.data.map(item => ({
+                        name: item.Name || item.name,
+                        phone: (item.Phone || item.phone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        email: item.Email || item.email,
+                        instagram: item.Instagram || item.instagram,
+                        submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
+                        timestamp: item.Timestamp ? new Date(item.Timestamp).toISOString() : new Date().toISOString()
+                    }));
+                    
+                    // Also update localStorage with this data
+                    localStorage.setItem('classDirectory', JSON.stringify(allEntries));
+                } else {
+                    console.log('No data in Google Sheets, using localStorage');
+                }
+                
+                // Fallback to localStorage
+                const localEntries = JSON.parse(localStorage.getItem('classDirectory')) || [];
+                if (allEntries.length === 0) {
+                    allEntries = localEntries;
+                }
+                
+                // Sort by date (newest first)
+                allEntries.sort((a, b) => {
+                    const dateA = new Date(a.timestamp || a.submittedAt || 0);
+                    const dateB = new Date(b.timestamp || b.submittedAt || 0);
+                    return dateB - dateA;
+                });
+                
+                displayEntries(allEntries);
+                updateStats(allEntries);
+                
+            } catch (error) {
+                console.error('Error loading entries:', error);
+                // Use localStorage
+                allEntries = JSON.parse(localStorage.getItem('classDirectory')) || [];
+                console.log(`Using ${allEntries.length} entries from localStorage`);
+                
+                // Sort by date
+                allEntries.sort((a, b) => {
+                    const dateA = new Date(a.timestamp || a.submittedAt || 0);
+                    const dateB = new Date(b.timestamp || b.submittedAt || 0);
+                    return dateB - dateA;
+                });
+                
+                displayEntries(allEntries);
+                updateStats(allEntries);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===== DISPLAY ENTRIES =====
+        function displayEntries(entries) {
+            const container = document.getElementById('entriesContainer');
+            
+            if (entries.length === 0) {
+                container.innerHTML = `
+                    <div class="no-entries">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>No Entries Yet</h3>
+                        <p>No profiles have been submitted yet.</p>
+                        <p>Share the form link with your classmates!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = entries.map(entry => {
+                // Format phone numbers
+                const formatPhone = (phone) => {
+                    if (!phone) return 'Not provided';
+                    const clean = phone.toString().replace(/\D/g, '');
+                    if (clean.length === 10) return `+91 ${clean.slice(0,5)} ${clean.slice(5)}`;
+                    return phone;
+                };
+                
+                // Format date
+                const formatDate = (dateString) => {
+                    if (!dateString) return 'Date not available';
+                    try {
+                        const date = new Date(dateString);
+                        if (isNaN(date.getTime())) return dateString; // Return as-is if not a valid date
+                        return date.toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit'
+                        });
+                    } catch (e) {
+                        return dateString;
+                    }
+                };
+                
+                const phone1 = formatPhone(entry.phone);
+                const phone2 = entry.altPhone ? formatPhone(entry.altPhone) : null;
+                
+                return `
+                    <div class="entry-item">
+                        <div class="entry-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="entry-info">
+                            <div class="entry-name">${entry.name || 'Unknown'}</div>
+                            <div class="entry-contact">
+                                <i class="fas fa-phone"></i> ${phone1}
+                            </div>
+                            ${phone2 ? `<div class="entry-contact">
+                                <i class="fas fa-phone-alt"></i> ${phone2}
+                            </div>` : ''}
+                            ${entry.email ? `<div class="entry-contact">
+                                <i class="fas fa-envelope"></i> ${entry.email}
+                            </div>` : ''}
+                            ${entry.instagram ? `<div class="entry-contact">
+                                <i class="fab fa-instagram"></i> @${entry.instagram}
+                            </div>` : ''}
+                            <div class="entry-contact">
+                                <i class="far fa-clock"></i> ${formatDate(entry.submittedAt)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== SEARCH ENTRIES =====
+        function searchEntries(searchTerm) {
+            if (!searchTerm.trim()) {
+                displayEntries(allEntries);
+                return;
+            }
+            
+            const term = searchTerm.toLowerCase();
+            const filtered = allEntries.filter(entry =>
+                (entry.name && entry.name.toLowerCase().includes(term)) ||
+                entry.phone?.toString().includes(term) ||
+                (entry.email && entry.email.toLowerCase().includes(term)) ||
+                (entry.instagram && entry.instagram.toLowerCase().includes(term))
+            );
+            
+            displayEntries(filtered);
+            updateStats(filtered);
+        }
+
+        // ===== UPDATE STATS =====
+        function updateStats(entries) {
+            const total = entries.length;
+            
+            // Calculate today's count
+            const today = new Date().toDateString();
+            const todayCount = entries.filter(entry => {
+                try {
+                    const entryDate = new Date(entry.timestamp || entry.submittedAt).toDateString();
+                    return entryDate === today;
+                } catch (e) {
+                    return false;
+                }
+            }).length;
+            
+            // Count with email
+            const withEmail = entries.filter(entry => entry.email && entry.email.trim()).length;
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statToday').textContent = todayCount;
+            document.getElementById('statWithEmail').textContent = withEmail;
+        }
+
+        // ===== EXPORT ALL DATA =====
+        function exportAllData() {
+            if (allEntries.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            // Prepare CSV content
+            const headers = ['Name', 'Phone', 'Alt Phone', 'Email', 'Instagram', 'Date Added', 'Timestamp'];
+            const csvRows = [];
+            
+            // Add headers
+            csvRows.push(headers.join(','));
+            
+            // Add data rows
+            allEntries.forEach(entry => {
+                const row = [
+                    `"${entry.name || ''}"`,
+                    `"${entry.phone || ''}"`,
+                    `"${entry.altPhone || ''}"`,
+                    `"${entry.email || ''}"`,
+                    `"${entry.instagram || ''}"`,
+                    `"${entry.submittedAt || entry.timestamp || ''}"`,
+                    `"${entry.timestamp || ''}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            // Create CSV string
+            const csv = csvRows.join('\n');
+            
+            // Create and trigger download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `classmates_directory_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Exported ${allEntries.length} entries successfully!`);
+        }
+
+        // ===== SYNC FROM GOOGLE SHEETS =====
+        async function syncFromGoogleSheets() {
+            try {
+                showLoading(true);
+                console.log('🔄 Syncing from Google Sheets...');
+                
+                const response = await fetch(`${GOOGLESCRIPTURL}?read=true`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const result = await response.json();
+                console.log('Sync response:', result);
+                
+                if (result.success && result.data && Array.isArray(result.data)) {
+                    // Convert and save to localStorage
+                    const entries = result.data.map(item => ({
+                        name: item.Name || item.name,
+                        phone: (item.Phone || item.phone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        email: item.Email || item.email,
+                        instagram: item.Instagram || item.instagram,
+                        submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
+                        timestamp: item.Timestamp ? new Date(item.Timestamp).toISOString() : new Date().toISOString()
+                    }));
+                    
+                    localStorage.setItem('classDirectory', JSON.stringify(entries));
+                    
+                    // Update daily stats
+                    const today = new Date().toDateString();
+                    let dailyStats = JSON.parse(localStorage.getItem('dailyStats')) || {};
+                    const todayCount = entries.filter(entry => {
+                        try {
+                            const entryDate = new Date(entry.timestamp || entry.submittedAt).toDateString();
+                            return entryDate === today;
+                        } catch (e) {
+                            return false;
+                        }
+                    }).length;
+                    dailyStats[today] = todayCount;
+                    localStorage.setItem('dailyStats', JSON.stringify(dailyStats));
+                    
+                    alert(`✅ Synced ${entries.length} entries from Google Sheets!`);
+                    loadEntries();
+                } else {
+                    alert('No data found in Google Sheets');
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                alert('❌ Error syncing from Google Sheets: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ===== CLEAR ALL DATA =====
+        function clearAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL local data! Are you sure?')) {
+                localStorage.removeItem('classDirectory');
+                localStorage.removeItem('dailyStats');
+                alert('✅ All local data cleared!');
+                loadEntries();
+                
+                // Notify main page if open
+                try {
+                    window.opener?.postMessage({ type: 'DATA_CLEARED' }, '*');
+                } catch (e) {
+                    console.log('Could not notify parent window');
+                }
+            }
+        }
+
+        // ===== SHOW/HIDE LOADING =====
+        function showLoading(show) {
+            const container = document.getElementById('entriesContainer');
+            if (show) {
+                container.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading entries...</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-refresh every 30 seconds (only when visible)
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                loadEntries();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

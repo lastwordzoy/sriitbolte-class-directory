@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassConnect | Batch 2024</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>ClassConnect</span>
+                </div>
+                <a href="admin.html" class="admin-btn">
+                    <i class="fas fa-users-cog"></i> Admin
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h1>Class of 2024 Directory</h1>
+                <p class="subtitle">Stay Connected • Forever Friends</p>
+                <p class="description">Add your profile to our exclusive batch directory. All data saved securely to Google Sheets.</p>
+                
+                <div class="live-stats">
+                    <div class="stat">
+                        <span class="number" id="totalMembers">0</span>
+                        <span class="label">Members</span>
+                    </div>
+                    <div class="stat">
+                        <span class="number" id="todayJoined">0</span>
+                        <span class="label">Today</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Form -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Progress Steps -->
+            <div class="steps">
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Personal Info</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Contact Details</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Review & Submit</div>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <div class="form-container">
+                <form id="classForm">
+                    <!-- Step 1 -->
+                    <div class="form-step active" id="step1">
+                        <h2><i class="fas fa-user"></i> Personal Information</h2>
+                        
+                        <div class="form-group">
+                            <label for="fullName">
+                                <i class="fas fa-user-circle"></i> Full Name *
+                            </label>
+                            <input type="text" id="fullName" required placeholder="Enter your full name">
+                            <small class="hint">As per school records</small>
+                        </div>
+
+                        <div class="profile-notice">
+                            <div class="notice-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="notice-content">
+                                <h4>Simple Profile Setup</h4>
+                                <p>No photo upload required. Focus on sharing your contact information to connect with classmates.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-next" onclick="nextStep(2)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="form-step" id="step2">
+                        <h2><i class="fas fa-address-book"></i> Contact Details</h2>
+                        
+                        <div class="form-group">
+                            <label for="phone">
+                                <i class="fas fa-phone"></i> WhatsApp Number *
+                            </label>
+                            <div class="phone-input">
+                                <div class="country-code">
+                                    <span>🇮🇳 +91</span>
+                                </div>
+                                <input type="tel" id="phone" required 
+                                       placeholder="98765 43210"
+                                       pattern="[0-9\s]{10,12}"
+                                       maxlength="12">
+                            </div>
+                            <small class="hint">10-digit Indian number (numbers only)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="altPhone">
+                                <i class="fas fa-phone-alt"></i> Alternate Number
+                            </label>
+                            <div class="phone-input">
+                                <div class="country-code">
+                                    <span>🇮🇳 +91</span>
+                                </div>
+                                <input type="tel" id="altPhone" 
+                                       placeholder="Alternative number"
+                                       maxlength="12">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" id="email" placeholder="your.email@gmail.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="instagram">
+                                <i class="fab fa-instagram"></i> Instagram ID
+                            </label>
+                            <div class="social-input">
+                                <span class="prefix">@</span>
+                                <input type="text" id="instagram" placeholder="username">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-back" onclick="prevStep(1)">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-next" onclick="nextStep(3)">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="form-step" id="step3">
+                        <h2><i class="fas fa-check-circle"></i> Review & Submit</h2>
+                        
+                        <div class="review-card">
+                            <div class="review-avatar">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                            <div class="review-details">
+                                <h3 id="reviewName">Your Name</h3>
+                                <div class="detail">
+                                    <i class="fas fa-phone"></i>
+                                    <span id="reviewPhone">Not provided</span>
+                                </div>
+                                <div class="detail">
+                                    <i class="fab fa-instagram"></i>
+                                    <span id="reviewInstagram">Not provided</span>
+                                </div>
+                                <div class="detail">
+                                    <i class="fas fa-envelope"></i>
+                                    <span id="reviewEmail">Not provided</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="privacy-notice">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <strong>Privacy Assured:</strong> Your information is visible only to batchmates through the secure admin panel.
+                            </div>
+                        </div>
+
+                        <div class="consent-box">
+                            <input type="checkbox" id="consent" required>
+                            <label for="consent">
+                                <i class="fas fa-check-circle"></i>
+                                I agree to share my contact information with batchmates
+                                <small>Your data will only be accessible through the admin panel with password protection</small>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-back" onclick="prevStep(2)">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-submit">
+                                <i class="fas fa-paper-plane"></i> Submit Profile
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Success Message -->
+                <div class="success-message" id="successMessage">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3>Profile Submitted Successfully!</h3>
+                    <p>Your information has been saved to Google Sheets and is now part of our class directory.</p>
+                    <div class="success-actions">
+                        <button class="btn btn-success" onclick="resetForm()">
+                            <i class="fas fa-plus"></i> Add Another Profile
+                        </button>
+                        <a href="admin.html" class="btn btn-outline" id="viewDirectoryBtn">
+                            <i class="fas fa-users"></i> View Directory
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-section">
+                <h3><i class="fas fa-chart-bar"></i> Directory Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total Profiles</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statWithEmail">0</div>
+                        <div class="stat-label">With Email</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statWithInsta">0</div>
+                        <div class="stat-label">On Instagram</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How It Works</h3>
+                <div class="steps-list">
+                    <div class="instruction">
+                        <span class="number">1</span>
+                        <p>Fill the form with your contact details</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">2</span>
+                        <p>Submit to save to Google Sheets</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">3</span>
+                        <p>Access directory via admin panel</p>
+                    </div>
+                    <div class="instruction">
+                        <span class="number">4</span>
+                        <p>Connect with classmates securely</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>ClassConnect</span>
+                </div>
+                <p class="footer-text">Connecting Class of 2024 • Secure & Private</p>
+                
+                <div class="footer-links">
+                    <a href="#" id="adminLink">
+                        <i class="fas fa-users"></i> View Directory
+                    </a>
+                    <a href="#" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </a>
+                    <a href="#" id="viewSheetLink" target="_blank">
+                        <i class="fas fa-table"></i> View Sheet
+                    </a>
+                </div>
+                
+                <p class="copyright">
+                    © 2024 ClassConnect • Data stored in Google Sheets • No photos required
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Saving to Google Sheets...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
