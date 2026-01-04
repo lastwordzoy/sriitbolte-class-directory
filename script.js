@@ -1,4 +1,4 @@
-// script.js - UPDATED WITH NEW GOOGLE SCRIPT URL
+// script.js - COMPLETE UPDATED VERSION WITH NEW GOOGLE SCRIPT URL
 const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbwMsU-0HkJPTZiSPJjIrXUAXocmD7_7mbBKMOXQreC5nkjOzG9lxXMpZxxbefOvsgL8/exec';
 const ADMINPASSWORD = 'class2024';
 const GOOGLESHEETURL = 'https://docs.google.com/spreadsheets/d/1ESTI04FQ8zrumvTYAZ-vlS446bCPsFcs1rjQrJeoc/edit';
