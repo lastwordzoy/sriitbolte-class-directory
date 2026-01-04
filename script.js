@@ -1,241 +1,213 @@
-[file name]: script.js
-[file content begin]
-// script.js - COMPLETE FIXED VERSION
-const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbxrEMMt6g-39pTAUeJhJnZdfzM7s5A4kI8trsm7yezVwBfkTQzGnJxDpLbxhPwc0zpX/exec';
+// script.js - UPDATED: Complete file with proper CORS handling
+const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbzDRcAFDwzdd4pepyqPuWgpbaMTDQ_hIdqrINC5aDcQ37bkAn9r2fqy6RSonvyyN2K5/exec';
 const ADMINPASSWORD = 'class2024';
 const GOOGLESHEETURL = 'https://docs.google.com/spreadsheets/d/1ESTI04FQ8zrumvTYAZ-vlS446bCPsFcs1rjQrJeoc/edit';
 
-// DOM Elements
-let currentStep = 1;
-let totalMembers = 0;
-let todayJoined = 0;
-
-// Initialize on page load
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     loadStats();
-    setupFormValidation();
-    setupFormNavigation();
-    
-    // Update view sheet link
-    document.getElementById('viewSheetLink').href = GOOGLESHEETURL;
-    
-    // Update admin link with password
-    document.getElementById('adminLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        const password = prompt('Enter admin password:');
-        if (password === ADMINPASSWORD) {
-            window.open('admin.html', '_blank');
-        } else {
-            alert('Incorrect password');
-        }
-    });
+    setupForm();
+    updateViewDirectoryLinks();
 });
 
-// Form Navigation
+// Form navigation
+let currentStep = 1;
+
 function nextStep(step) {
-    // Validate current step before proceeding
-    if (currentStep === 1 && !validateStep1()) return;
-    if (currentStep === 2 && !validateStep2()) return;
+    if (!validateStep(currentStep)) return;
     
-    document.getElementById(`step${currentStep}`).classList.remove('active');
+    document.getElementById('step' + currentStep).classList.remove('active');
+    document.querySelector('.step:nth-child(' + currentStep + ')').classList.remove('active');
+    
     currentStep = step;
-    document.getElementById(`step${currentStep}`).classList.add('active');
-    updateReviewSection();
+    
+    document.getElementById('step' + currentStep).classList.add('active');
+    document.querySelector('.step:nth-child(' + currentStep + ')').classList.add('active');
+    updateReview();
 }
 
 function prevStep(step) {
-    document.getElementById(`step${currentStep}`).classList.remove('active');
+    document.getElementById('step' + currentStep).classList.remove('active');
+    document.querySelector('.step:nth-child(' + currentStep + ')').classList.remove('active');
+    
     currentStep = step;
-    document.getElementById(`step${currentStep}`).classList.add('active');
+    
+    document.getElementById('step' + currentStep).classList.add('active');
+    document.querySelector('.step:nth-child(' + currentStep + ')').classList.add('active');
 }
 
-// Form Validation
-function validateStep1() {
-    const name = document.getElementById('fullName').value.trim();
-    if (!name) {
-        alert('Please enter your full name');
-        document.getElementById('fullName').focus();
-        return false;
-    }
-    return true;
-}
-
-function validateStep2() {
-    const phone = document.getElementById('phone').value.trim();
-    if (!phone) {
-        alert('Please enter your WhatsApp number');
-        document.getElementById('phone').focus();
-        return false;
-    }
-    
-    // Clean phone number (remove spaces)
-    const cleanPhone = phone.replace(/\s/g, '');
-    if (cleanPhone.length !== 10 || !/^\d+$/.test(cleanPhone)) {
-        alert('Please enter a valid 10-digit Indian phone number');
-        document.getElementById('phone').focus();
-        return false;
-    }
-    
-    const email = document.getElementById('email').value.trim();
-    if (email && !validateEmail(email)) {
-        alert('Please enter a valid email address');
-        document.getElementById('email').focus();
-        return false;
-    }
-    
-    return true;
-}
-
-function validateEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-// Update Review Section
-function updateReviewSection() {
-    if (currentStep !== 3) return;
-    
-    const name = document.getElementById('fullName').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const altPhone = document.getElementById('altPhone').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const instagram = document.getElementById('instagram').value.trim();
-    
-    document.getElementById('reviewName').textContent = name || 'Not provided';
-    
-    // Format phone for display
-    const formatPhone = (phone) => {
-        if (!phone) return 'Not provided';
-        const clean = phone.replace(/\s/g, '');
-        if (clean.length === 10) return `+91 ${clean.slice(0,5)} ${clean.slice(5)}`;
-        return phone;
-    };
-    
-    document.getElementById('reviewPhone').textContent = formatPhone(phone);
-    
-    if (altPhone) {
-        document.getElementById('reviewPhone').textContent += ` / ${formatPhone(altPhone)}`;
-    }
-    
-    document.getElementById('reviewEmail').textContent = email || 'Not provided';
-    document.getElementById('reviewInstagram').textContent = instagram ? `@${instagram}` : 'Not provided';
-}
-
-// Form Submission
-document.getElementById('classForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    if (!validateStep1() || !validateStep2()) {
-        return;
-    }
-    
-    if (!document.getElementById('consent').checked) {
-        alert('Please agree to share your contact information');
-        return;
-    }
-    
-    // Prepare data
-    const formData = {
-        name: document.getElementById('fullName').value.trim(),
-        phone: document.getElementById('phone').value.trim().replace(/\s/g, ''),
-        altPhone: document.getElementById('altPhone').value.trim().replace(/\s/g, ''),
-        email: document.getElementById('email').value.trim(),
-        instagram: document.getElementById('instagram').value.trim(),
-        timestamp: new Date().toISOString()
-    };
-    
-    // Show loading
-    document.getElementById('loading').style.display = 'flex';
-    
-    try {
-        // Save to Google Sheets
-        const saved = await saveToGoogleSheets(formData);
-        
-        if (saved) {
-            // Also save to localStorage as backup
-            saveToLocalStorage(formData);
-            
-            // Show success
-            document.querySelector('.form-container').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'block';
-            
-            // Update stats
-            loadStats();
-            
-            // Update directory button with password
-            document.getElementById('viewDirectoryBtn').onclick = function(e) {
-                e.preventDefault();
-                const password = prompt('Enter admin password:');
-                if (password === ADMINPASSWORD) {
-                    window.open('admin.html', '_blank');
-                } else {
-                    alert('Incorrect password');
-                }
-            };
-        } else {
-            alert('Failed to save to Google Sheets. Please try again or use local storage.');
-            saveToLocalStorage(formData);
+function validateStep(step) {
+    if (step === 1) {
+        const name = document.getElementById('fullName').value.trim();
+        if (!name) {
+            alert('Please enter your full name');
+            return false;
         }
-    } catch (error) {
-        console.error('Submission error:', error);
-        alert('Error submitting form. Saving locally instead.');
-        saveToLocalStorage(formData);
-    } finally {
-        document.getElementById('loading').style.display = 'none';
+        return true;
     }
-});
+    
+    if (step === 2) {
+        const phone = document.getElementById('phone').value.trim();
+        if (!phone) {
+            alert('Please enter your WhatsApp number');
+            return false;
+        }
+        if (!/^\d{10}$/.test(phone.replace(/\s/g, ''))) {
+            alert('Please enter a valid 10-digit phone number');
+            return false;
+        }
+        return true;
+    }
+    
+    return true;
+}
 
-// Save to Google Sheets
+function updateReview() {
+    if (currentStep === 3) {
+        document.getElementById('reviewName').textContent = 
+            document.getElementById('fullName').value || 'Not provided';
+        document.getElementById('reviewPhone').textContent = 
+            document.getElementById('phone').value || 'Not provided';
+        document.getElementById('reviewEmail').textContent = 
+            document.getElementById('email').value || 'Not provided';
+        document.getElementById('reviewInstagram').textContent = 
+            document.getElementById('instagram').value ? '@' + document.getElementById('instagram').value : 'Not provided';
+    }
+}
+
+// Form setup
+function setupForm() {
+    const form = document.getElementById('classForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!validateStep(1) || !validateStep(2)) return;
+        
+        if (!document.getElementById('consent').checked) {
+            alert('Please agree to share your contact information');
+            return;
+        }
+        
+        const formData = {
+            name: document.getElementById('fullName').value.trim(),
+            phone: document.getElementById('phone').value.replace(/\s/g, ''),
+            altPhone: document.getElementById('altPhone').value.replace(/\s/g, '') || '',
+            email: document.getElementById('email').value.trim() || '',
+            instagram: document.getElementById('instagram').value.trim() || '',
+            timestamp: new Date().toISOString(),
+            submittedAt: new Date().toLocaleString('en-IN')
+        };
+        
+        console.log('Submitting data:', formData);
+        
+        // Show loading
+        document.getElementById('loading').style.display = 'flex';
+        
+        try {
+            // Save to Google Sheets
+            const success = await saveToGoogleSheets(formData);
+            
+            if (success) {
+                // Also save to localStorage for offline access
+                let localEntries = JSON.parse(localStorage.getItem('classDirectory')) || [];
+                localEntries.push(formData);
+                localStorage.setItem('classDirectory', JSON.stringify(localEntries));
+                
+                // Update daily stats
+                const today = new Date().toDateString();
+                let dailyStats = JSON.parse(localStorage.getItem('dailyStats')) || {};
+                dailyStats[today] = (dailyStats[today] || 0) + 1;
+                localStorage.setItem('dailyStats', JSON.stringify(dailyStats));
+                
+                // Show success
+                document.querySelector('.form-container form').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+                // Notify admin panel if open
+                try {
+                    window.opener?.postMessage({ type: 'NEW_ENTRY', data: formData }, '*');
+                } catch (e) {
+                    console.log('Could not notify admin panel');
+                }
+                
+                // Update stats
+                loadStats();
+                
+                // Update admin panel if it's in a popup
+                const adminWindow = window.open('', 'AdminPanel');
+                if (adminWindow) {
+                    adminWindow.postMessage({ type: 'NEW_ENTRY', data: formData }, '*');
+                }
+                
+            } else {
+                alert('Failed to save to Google Sheets. Please try again or check your connection.');
+            }
+        } catch (error) {
+            console.error('Submission error:', error);
+            alert('Error saving data: ' + error.message);
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+        }
+    });
+}
+
+// UPDATED: Google Sheets save function
 async function saveToGoogleSheets(data) {
     try {
         console.log('Sending to Google Sheets:', data);
         
-        // Add action parameter for Google Script
-        const payload = {
-            action: 'create',
-            data: data
-        };
+        // Use formData approach for better compatibility
+        const formData = new FormData();
+        formData.append('name', data.name);
+        formData.append('phone', data.phone);
+        formData.append('altPhone', data.altPhone);
+        formData.append('email', data.email);
+        formData.append('instagram', data.instagram);
+        formData.append('timestamp', data.timestamp);
         
         const response = await fetch(GOOGLESCRIPTURL, {
             method: 'POST',
-            mode: 'no-cors', // Use no-cors for Google Apps Script
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            mode: 'no-cors', // Important for Google Apps Script
+            body: formData
         });
         
-        // With no-cors mode, we can't read the response
-        // But the request should still go through
-        console.log('Request sent to Google Sheets');
+        // With no-cors, we can't read the response
+        // So we'll assume success if no network error
+        console.log('Data sent to Google Sheets (no-cors mode)');
         return true;
         
     } catch (error) {
         console.error('Network error:', error.message);
-        return false;
+        
+        // Fallback: Use JSON with error handling
+        try {
+            const jsonResponse = await fetch(GOOGLESCRIPTURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            console.log('JSON fallback response status:', jsonResponse.status);
+            return jsonResponse.ok;
+        } catch (fallbackError) {
+            console.error('Fallback also failed:', fallbackError);
+            return false;
+        }
     }
 }
 
-// Save to Local Storage
-function saveToLocalStorage(data) {
-    const entries = JSON.parse(localStorage.getItem('classDirectory')) || [];
-    entries.push(data);
-    localStorage.setItem('classDirectory', JSON.stringify(entries));
-    
-    // Update daily stats
-    const today = new Date().toDateString();
-    let dailyStats = JSON.parse(localStorage.getItem('dailyStats')) || {};
-    dailyStats[today] = (dailyStats[today] || 0) + 1;
-    localStorage.setItem('dailyStats', JSON.stringify(dailyStats));
-    
-    console.log('Saved to localStorage:', data);
-}
-
-// Load Stats
+// UPDATED: Load stats function
 async function loadStats() {
     try {
-        // Try to load from Google Sheets first
-        const response = await fetch(`${GOOGLESCRIPTURL}?action=read`);
+        console.log('Loading stats from Google Sheets...');
+        
+        // Try to get data from Google Sheets
+        // Use a timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${GOOGLESCRIPTURL}?action=read&t=${timestamp}`);
+        
         if (response.ok) {
             const result = await response.json();
             if (result.success && Array.isArray(result.data)) {
@@ -243,71 +215,119 @@ async function loadStats() {
                 return;
             }
         }
+        
+        // Fallback to localStorage
+        console.log('Using localStorage stats');
+        updateStatsFromLocalStorage();
+        
     } catch (error) {
-        console.log('Using localStorage stats:', error.message);
+        console.log('Error loading from Google, using localStorage:', error);
+        updateStatsFromLocalStorage();
     }
-    
-    // Fallback to localStorage
-    updateStatsFromLocalStorage();
 }
 
-// Update Stats from Google Sheets
 function updateStatsFromGoogleSheets(data) {
-    if (!Array.isArray(data)) return;
-    
     const total = data.length;
-    const today = new Date().toDateString();
-    const withEmail = data.filter(entry => entry.Email || entry.email).length;
-    const withInsta = data.filter(entry => entry.Instagram || entry.instagram).length;
-    
-    // Update main page stats
-    document.getElementById('totalMembers').textContent = total;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statWithEmail').textContent = withEmail;
-    document.getElementById('statWithInsta').textContent = withInsta;
-    
-    // Calculate today's count
+    const withEmail = data.filter(entry => entry.email && entry.email.trim()).length;
+    const withInsta = data.filter(entry => entry.instagram && entry.instagram.trim()).length;
     const todayCount = data.filter(entry => {
         try {
-            const entryDate = new Date(entry.Timestamp || entry.timestamp).toDateString();
-            return entryDate === today;
+            const entryDate = new Date(entry.timestamp || entry.submittedAt).toDateString();
+            return entryDate === new Date().toDateString();
         } catch (e) {
             return false;
         }
     }).length;
     
-    document.getElementById('todayJoined').textContent = todayCount;
-    
-    // Update localStorage with Google Sheets data
-    localStorage.setItem('classDirectory', JSON.stringify(data));
+    // Update all stat displays
+    updateStatElements(total, todayCount, withEmail, withInsta);
 }
 
-// Update Stats from Local Storage
 function updateStatsFromLocalStorage() {
     const entries = JSON.parse(localStorage.getItem('classDirectory')) || [];
     const total = entries.length;
-    const today = new Date().toDateString();
-    
-    const withEmail = entries.filter(entry => entry.email).length;
-    const withInsta = entries.filter(entry => entry.instagram).length;
+    const withEmail = entries.filter(entry => entry.email && entry.email.trim()).length;
+    const withInsta = entries.filter(entry => entry.instagram && entry.instagram.trim()).length;
     const todayCount = entries.filter(entry => {
         try {
-            const entryDate = new Date(entry.timestamp).toDateString();
-            return entryDate === today;
+            const entryDate = new Date(entry.timestamp || entry.submittedAt).toDateString();
+            return entryDate === new Date().toDateString();
         } catch (e) {
             return false;
         }
     }).length;
     
-    // Update all stat elements
-    document.getElementById('totalMembers').textContent = total;
-    document.getElementById('todayJoined').textContent = todayCount;
-    document.getElementById('statTotal').textContent = total;
-    document.getElementById('statWithEmail').textContent = withEmail;
-    document.getElementById('statWithInsta').textContent = withInsta;
+    updateStatElements(total, todayCount, withEmail, withInsta);
 }
 
-// Export Data
+function updateStatElements(total, todayCount, withEmail, withInsta) {
+    // Update hero stats
+    const totalMembers = document.getElementById('totalMembers');
+    const todayJoined = document.getElementById('todayJoined');
+    
+    if (totalMembers) totalMembers.textContent = total;
+    if (todayJoined) todayJoined.textContent = todayCount;
+    
+    // Update stats section
+    const statTotal = document.getElementById('statTotal');
+    const statWithEmail = document.getElementById('statWithEmail');
+    const statWithInsta = document.getElementById('statWithInsta');
+    
+    if (statTotal) statTotal.textContent = total;
+    if (statWithEmail) statWithEmail.textContent = withEmail;
+    if (statWithInsta) statWithInsta.textContent = withInsta;
+}
+
+function updateViewDirectoryLinks() {
+    const adminLink = document.getElementById('adminLink');
+    const viewDirectoryBtn = document.getElementById('viewDirectoryBtn');
+    const viewSheetLink = document.getElementById('viewSheetLink');
+    
+    if (adminLink) {
+        adminLink.href = 'admin.html';
+        adminLink.onclick = function(e) {
+            e.preventDefault();
+            const password = prompt('Enter admin password:');
+            if (password === ADMINPASSWORD) {
+                window.open('admin.html', '_blank');
+            } else {
+                alert('Incorrect password');
+            }
+        };
+    }
+    
+    if (viewDirectoryBtn) {
+        viewDirectoryBtn.onclick = function(e) {
+            e.preventDefault();
+            const password = prompt('Enter admin password:');
+            if (password === ADMINPASSWORD) {
+                window.location.href = 'admin.html';
+            } else {
+                alert('Incorrect password');
+            }
+        };
+    }
+    
+    if (viewSheetLink) {
+        viewSheetLink.href = GOOGLESHEETURL;
+    }
+}
+
+function resetForm() {
+    // Reset form
+    document.getElementById('classForm').reset();
+    document.getElementById('successMessage').style.display = 'none';
+    document.querySelector('.form-container form').style.display = 'block';
+    
+    // Reset to step 1
+    document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+    document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+    
+    document.getElementById('step1').classList.add('active');
+    document.querySelector('.step:nth-child(1)').classList.add('active');
+    currentStep = 1;
+}
+
 function exportData() {
     const entries = JSON.parse(localStorage.getItem('classDirectory')) || [];
     if (entries.length === 0) {
@@ -316,7 +336,7 @@ function exportData() {
     }
     
     // Prepare CSV
-    const headers = ['Name', 'Phone', 'Alt Phone', 'Email', 'Instagram', 'Timestamp'];
+    const headers = ['Name', 'Phone', 'Alt Phone', 'Email', 'Instagram', 'Date Added'];
     const csvRows = [headers.join(',')];
     
     entries.forEach(entry => {
@@ -326,72 +346,22 @@ function exportData() {
             `"${entry.altPhone || ''}"`,
             `"${entry.email || ''}"`,
             `"${entry.instagram || ''}"`,
-            `"${entry.timestamp || ''}"`
+            `"${entry.submittedAt || ''}"`
         ];
         csvRows.push(row.join(','));
     });
     
     const csv = csvRows.join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     link.setAttribute('download', `classmates_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-// Reset Form
-function resetForm() {
-    document.getElementById('classForm').reset();
-    document.querySelector('.form-container').style.display = 'block';
-    document.getElementById('successMessage').style.display = 'none';
-    currentStep = 1;
-    
-    // Reset steps
-    document.querySelectorAll('.form-step').forEach(step => {
-        step.classList.remove('active');
-    });
-    document.getElementById('step1').classList.add('active');
-    
-    // Reset progress steps
-    document.querySelectorAll('.step').forEach(step => {
-        step.classList.remove('active');
-    });
-    document.querySelector('.step:first-child').classList.add('active');
-}
-
-// Setup Form Validation Events
-function setupFormValidation() {
-    document.getElementById('phone').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 10) value = value.slice(0, 10);
-        e.target.value = value;
-    });
-    
-    document.getElementById('altPhone').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 10) value = value.slice(0, 10);
-        e.target.value = value;
-    });
-}
-
-// Setup Form Navigation
-function setupFormNavigation() {
-    // Update step indicators
-    document.querySelectorAll('.step').forEach((step, index) => {
-        step.addEventListener('click', () => {
-            if (index + 1 < currentStep) {
-                prevStep(index + 1);
-                
-                // Update step visual indicators
-                document.querySelectorAll('.step').forEach(s => {
-                    s.classList.remove('active');
-                });
-                step.classList.add('active');
-            }
-        });
-    });
-}
-[file content end]
+// Auto-refresh stats every 30 seconds
+setInterval(loadStats, 30000);
