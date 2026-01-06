@@ -307,9 +307,9 @@
         </div>
     </div>
 
-    <script>
-        // Google Script URL - UPDATED WITH NEW URL
-        const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbwMsU-0HkJPTZiSPJjIrXUAXocmD7_7mbBKMOXQreC5nkjOzG9lxXMpZxxbefOvsgL8/exec';
+        <script>
+        // Google Script URL - USE THE WORKING URL
+        const GOOGLESCRIPTURL = 'https://script.google.com/macros/s/AKfycbzDRcAFDwzdd4pepyqPuWgpbaMTDQ_hIdqrINC5aDcQ37bkAn9r2fqy6RSonvyyN2K5/exec';
 
         let allEntries = [];
 
@@ -335,45 +335,39 @@
         async function loadEntries() {
             try {
                 showLoading(true);
-                console.log('🔄 Loading entries from:', GOOGLESCRIPTURL);
+                console.log('Loading entries from:', GOOGLESCRIPTURL);
                 
                 // Try to load from Google Sheets first
                 const response = await fetch(GOOGLESCRIPTURL);
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await response.json();
                 console.log('Google Sheets response:', result);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
-                    console.log(`✅ Found ${result.data.length} entries in Google Sheets`);
+                    console.log(`Found ${result.data.length} entries in Google Sheets`);
                     
                     // Convert Google Sheets data to our format
                     allEntries = result.data.map(item => ({
-                        name: item.Name || item.name || '',
-                        phone: (item.Phone || item.phone || '')?.toString(),
-                        altPhone: (item.AltPhone || item['Alt Phone'] || item['Alternate Phone'] || item.altPhone || '')?.toString(),
-                        email: item.Email || item.email || '',
-                        instagram: item.Instagram || item.instagram || '',
-                        submittedAt: item.Timestamp ? new Date(item.Timestamp).toLocaleString('en-IN') : 'Date not available',
-                        timestamp: item.Timestamp || new Date().toISOString()
+                        name: item.Name || item.name,
+                        phone: (item.Phone || item.phone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        email: item.Email || item.email,
+                        instagram: item.Instagram || item.instagram,
+                        submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
+                        timestamp: item.Timestamp ? new Date(item.Timestamp).toISOString() : new Date().toISOString()
                     }));
                     
                     // Also update localStorage with this data
                     localStorage.setItem('classDirectory', JSON.stringify(allEntries));
-                    console.log('✅ Updated localStorage with Google Sheets data');
                 } else {
-                    console.log('⚠️ No data in Google Sheets, using localStorage');
+                    console.log('No data in Google Sheets, using localStorage');
                 }
                 
                 // Fallback to localStorage
                 const localEntries = JSON.parse(localStorage.getItem('classDirectory')) || [];
                 if (allEntries.length === 0) {
                     allEntries = localEntries;
-                    console.log(`📁 Using ${allEntries.length} entries from localStorage`);
                 }
                 
                 // Sort by date (newest first)
@@ -387,10 +381,10 @@
                 updateStats(allEntries);
                 
             } catch (error) {
-                console.error('❌ Error loading from Google Sheets:', error);
+                console.error('Error loading entries:', error);
                 // Use localStorage
                 allEntries = JSON.parse(localStorage.getItem('classDirectory')) || [];
-                console.log(`📁 Using ${allEntries.length} entries from localStorage (fallback)`);
+                console.log(`Using ${allEntries.length} entries from localStorage`);
                 
                 // Sort by date
                 allEntries.sort((a, b) => {
@@ -425,7 +419,7 @@
             container.innerHTML = entries.map(entry => {
                 // Format phone numbers
                 const formatPhone = (phone) => {
-                    if (!phone || phone === 'undefined') return 'Not provided';
+                    if (!phone) return 'Not provided';
                     const clean = phone.toString().replace(/\D/g, '');
                     if (clean.length === 10) return `+91 ${clean.slice(0,5)} ${clean.slice(5)}`;
                     return phone;
@@ -433,7 +427,7 @@
                 
                 // Format date
                 const formatDate = (dateString) => {
-                    if (!dateString || dateString === 'undefined') return 'Date not available';
+                    if (!dateString) return 'Date not available';
                     try {
                         const date = new Date(dateString);
                         if (isNaN(date.getTime())) return dateString;
@@ -579,13 +573,13 @@
                 if (result.success && result.data && Array.isArray(result.data)) {
                     // Convert and save to localStorage
                     const entries = result.data.map(item => ({
-                        name: item.Name || item.name || '',
-                        phone: (item.Phone || item.phone || '')?.toString(),
-                        altPhone: (item.AltPhone || item['Alt Phone'] || item['Alternate Phone'] || item.altPhone || '')?.toString(),
-                        email: item.Email || item.email || '',
-                        instagram: item.Instagram || item.instagram || '',
-                        submittedAt: item.Timestamp ? new Date(item.Timestamp).toLocaleString('en-IN') : 'Date not available',
-                        timestamp: item.Timestamp || new Date().toISOString()
+                        name: item.Name || item.name,
+                        phone: (item.Phone || item.phone)?.toString(),
+                        altPhone: (item['Alt Phone'] || item['Alternate Phone'] || item.altPhone)?.toString(),
+                        email: item.Email || item.email,
+                        instagram: item.Instagram || item.instagram,
+                        submittedAt: item['Submitted At'] || item['Submission Date'] || item.submittedAt || item.Timestamp,
+                        timestamp: item.Timestamp ? new Date(item.Timestamp).toISOString() : new Date().toISOString()
                     }));
                     
                     localStorage.setItem('classDirectory', JSON.stringify(entries));
@@ -610,7 +604,7 @@
                     alert('No data found in Google Sheets');
                 }
             } catch (error) {
-                console.error('❌ Sync error:', error);
+                console.error('Sync error:', error);
                 alert('❌ Error syncing from Google Sheets: ' + error.message);
             } finally {
                 showLoading(false);
@@ -653,23 +647,6 @@
                 loadEntries();
             }
         }, 30000);
-        
-        // Test function
-        async function testConnection() {
-            console.log('Testing connection to:', GOOGLESCRIPTURL);
-            try {
-                const response = await fetch(GOOGLESCRIPTURL);
-                const result = await response.json();
-                console.log('Connection test result:', result);
-                return result.success;
-            } catch (error) {
-                console.error('Connection test failed:', error);
-                return false;
-            }
-        }
-        
-        // Run connection test
-        setTimeout(testConnection, 2000);
     </script>
 </body>
 </html>
